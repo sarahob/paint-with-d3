@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<style>
+
+.line {
+  fill: none;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+h1{
+  font-family: arial;
+}
+
+button{
+  vertical-align: top;
+}
+
+</style>
+<h1>Paint with D3</h1>
+<div>
+    <div id='palette'>
+      <button id='undo'>Undo</button>
+      <button id='clear'>Clear</button>
+      <svg width='240' height='20'><g></g></svg>
+    </div>
+    <br>
+  <svg width='960' height='500' id='easal'>
+    <rect style='fill:#fff;' width='100%' height='100%' stroke="#000"></rect>
+  </svg>
+</div>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js'></script>
+<script>
+
+var activeLine, 
+    color = '#000'; //inital stroke color is black
+
+var renderPath = d3.svg.line()
+    .x(function(d) { return d[0]; })
+    .y(function(d) { return d[1]; })
+    .interpolate('basis');
+
+var svg = d3.select('#easal')
+    .call(d3.behavior.drag()
+      .on('dragstart', dragstarted)
+      .on('drag', dragged)
+      .on('dragend', dragended));
+
+function dragstarted() {
+  activeLine = svg.append('path').datum([]).attr('class', 'line').attr('stroke',color);
+}
+
+function dragged() {
+  activeLine.datum().push(d3.mouse(this));
+  activeLine.attr('d', renderPath);
+}
+
+function dragended() {
+  activeLine = null;
+}
+
+d3.select('#undo').on('click', function(){
+  d3.select('path.line').remove();
+});
+
+d3.select('#clear').on('click', function(){
+  d3.selectAll('path.line').remove();
+});
+
+var colorScale = d3.scale.category10(),
+    colorAr = [0,1,2,3,4,5,6,7,8,9,10]; 
+
+d3.select('#palette')
+    .select('g')
+  .selectAll('rect')
+    .data(colorAr)
+  .enter().append('rect')
+    .attr('width', 20)
+    .attr('height',20)
+    .attr('x', function(d,i){
+      return 22 * i;
+    })
+    .attr('fill', function(d){
+      return colorScale(d);
+    })
+    .style('cursor','pointer')
+    .on('click',function(d){
+      changeColor(colorScale(d));
+    });
+
+  function changeColor(c){
+    color = c;
+  }
+
+</script>
